@@ -79,3 +79,10 @@ main#editor-container {
     width: 100%;
     font-size: 16px;
 }
+
+/* Panel de números de línea (gutter) */
+.cm-gutters {
+    background-color: #1e1e1e; /* Mismo color que el fondo del editor */
+    border-right: 1px solid #333; /* Línea separadora sutil */
+    color: #d4d4d4; /* Color de los números de línea */
+}

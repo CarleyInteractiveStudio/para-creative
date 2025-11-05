@@ -15,11 +15,14 @@ saludar();
     // Obtiene el contenedor del editor del DOM
     const editorContainer = document.getElementById('editor-container');
 
-    // Crea el estado inicial del editor con el contenido y las extensiones
+    // Crea el estado inicial del editor
     const initialState = cm6.createEditorState(initialCode);
 
     // Crea la vista del editor, asociándola al estado y al contenedor
     const view = cm6.createEditorView(initialState, editorContainer);
+
+    // Enfoca el editor automáticamente al cargar
+    view.focus();
 
     // Adjunta la vista al objeto window para poder acceder a ella desde la consola
     window.editorView = view;
@@ -45,13 +48,11 @@ saludar();
 
     // Deshacer
     undoBtn.addEventListener('click', () => {
-        // cm6.undo es una función de comando que necesita ser "despachada"
         cm6.undo(view);
     });
 
     // Rehacer
     redoBtn.addEventListener('click', () => {
-        // cm6.redo es una función de comando que necesita ser "despachada"
         cm6.redo(view);
     });
 
