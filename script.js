@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveBtn = document.getElementById('save-btn');
     const undoBtn = document.getElementById('undo-btn');
     const redoBtn = document.getElementById('redo-btn');
+    const toolboxXml = document.getElementById('stc-toolbox-xml');
 
     // --- Inicialización del Editor de Código (CodeMirror) ---
     const initialCode = `// Bienvenido al Editor de Código\nfunction saludar() {\n    console.log("¡Hola, mundo!");\n}\nsaludar();`;
@@ -19,9 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.editorView = view;
 
     // --- Inicialización del Editor de Bloques (Blockly) ---
-    const stcWorkspacePanel = document.querySelector('.stc-workspace-panel');
-    const blocklyWorkspace = Blockly.inject(stcWorkspacePanel, {
-        toolbox: document.getElementById('stc-toolbox-xml'),
+    const blocklyWorkspace = Blockly.inject('stc-container', {
+        toolbox: toolboxXml, // Usar la toolbox por defecto
         theme: Blockly.Themes.Dark,
         renderer: 'zelos'
     });
@@ -32,24 +32,24 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mode === 'pc') {
             pcModeBtn.classList.add('active');
             stcModeBtn.classList.remove('active');
-            editorContainer.classList.remove('hidden');
-            stcContainer.classList.add('hidden');
-            view.focus(); // Devuelve el foco a CodeMirror
+            editorContainer.style.display = 'block';
+            stcContainer.style.display = 'none';
+            view.focus();
         } else if (mode === 'stc') {
             stcModeBtn.classList.add('active');
             pcModeBtn.classList.remove('active');
-            stcContainer.classList.remove('hidden');
-            editorContainer.classList.add('hidden');
-            Blockly.svgResize(blocklyWorkspace); // Asegura que Blockly se redimensione
+            editorContainer.style.display = 'none';
+            stcContainer.style.display = 'flex';
+            Blockly.svgResize(blocklyWorkspace);
         }
     }
 
+    stcContainer.style.display = 'none';
     pcModeBtn.addEventListener('click', () => setActiveMode('pc'));
     stcModeBtn.addEventListener('click', () => setActiveMode('stc'));
 
-    // Redimensionar Blockly cuando la ventana cambie de tamaño
     window.addEventListener('resize', () => {
-        if (!stcContainer.classList.contains('hidden')) {
+        if (stcContainer.style.display === 'flex') {
             Blockly.svgResize(blocklyWorkspace);
         }
     });
@@ -58,13 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
     saveBtn.addEventListener('click', () => {
         let code = '';
         if (pcModeBtn.classList.contains('active')) {
-            // Modo P.C.: Obtener código de CodeMirror
             code = view.state.doc.toString();
         } else {
-            // Modo S.T.C.: Generar código desde Blockly
             code = Blockly.JavaScript.workspaceToCode(blocklyWorkspace);
         }
-
         const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -74,20 +71,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     undoBtn.addEventListener('click', () => {
-        if (pcModeBtn.classList.contains('active')) {
-            cm6.undo(view);
-        } else {
-            blocklyWorkspace.undo(false);
-        }
+        if (pcModeBtn.classList.contains('active')) cm6.undo(view);
+        else blocklyWorkspace.undo(false);
     });
 
     redoBtn.addEventListener('click', () => {
-        if (pcModeBtn.classList.contains('active')) {
-            cm6.redo(view);
-        } else {
-            blocklyWorkspace.undo(true);
-        }
+        if (pcModeBtn.classList.contains('active')) cm6.redo(view);
+        else blocklyWorkspace.undo(true);
     });
 
-    console.log("Editores inicializados y lógica de modos conectada.");
+    console.log("Editores inicializados.");
 });

@@ -25,18 +25,8 @@
 
     <main id="editor-container"></main>
 
-    <div id="stc-container" class="hidden">
-        <div class="stc-toolbox-panel">
-            <div class="stc-search-bar">
-                <input type="text" placeholder="Buscar bloques...">
-            </div>
-            <!-- La toolbox de Blockly se inyectará aquí por JS, pero el XML se define abajo -->
-            <div class="stc-blocks-library" id="blockly-toolbox-container"></div>
-            <div class="stc-categories">
-                <!-- Las categorías irán aquí -->
-            </div>
-        </div>
-        <div class="stc-workspace-panel"></div>
+    <div id="stc-container" style="display: none;">
+        <!-- Blockly se inyectará aquí directamente -->
     </div>
 
     <!-- Definición de la Toolbox de Blockly (oculta) -->
