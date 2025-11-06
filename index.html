@@ -19,12 +19,79 @@
         </div>
         <div class="bubble-container modes">
             <button id="pc-mode" class="active">P.C.</button>
+            <button id="stc-mode">S.T.C.</button>
         </div>
     </header>
 
     <main id="editor-container"></main>
 
+    <div id="stc-container" class="hidden">
+        <div class="stc-toolbox-panel">
+            <div class="stc-search-bar">
+                <input type="text" placeholder="Buscar bloques...">
+            </div>
+            <!-- La toolbox de Blockly se inyectará aquí por JS, pero el XML se define abajo -->
+            <div class="stc-blocks-library" id="blockly-toolbox-container"></div>
+            <div class="stc-categories">
+                <!-- Las categorías irán aquí -->
+            </div>
+        </div>
+        <div class="stc-workspace-panel"></div>
+    </div>
+
+    <!-- Definición de la Toolbox de Blockly (oculta) -->
+    <xml id="stc-toolbox-xml" style="display: none">
+        <category name="Lógica" colour="%{BKY_LOGIC_HUE}">
+            <block type="controls_if"></block>
+            <block type="logic_compare"></block>
+            <block type="logic_operation"></block>
+            <block type="logic_negate"></block>
+            <block type="logic_boolean"></block>
+        </category>
+        <category name="Bucles" colour="%{BKY_LOOPS_HUE}">
+            <block type="controls_repeat_ext">
+                <value name="TIMES">
+                    <shadow type="math_number">
+                        <field name="NUM">10</field>
+                    </shadow>
+                </value>
+            </block>
+            <block type="controls_whileUntil"></block>
+        </category>
+        <category name="Matemáticas" colour="%{BKY_MATH_HUE}">
+            <block type="math_number"></block>
+            <block type="math_arithmetic">
+                <value name="A">
+                    <shadow type="math_number">
+                        <field name="NUM">1</field>
+                    </shadow>
+                </value>
+                <value name="B">
+                    <shadow type="math_number">
+                        <field name="NUM">1</field>
+                    </shadow>
+                </value>
+            </block>
+        </category>
+        <category name="Texto" colour="%{BKY_TEXTS_HUE}">
+            <block type="text"></block>
+            <block type="text_print">
+                <value name="TEXT">
+                    <shadow type="text">
+                        <field name="TEXT">abc</field>
+                    </shadow>
+                </value>
+            </block>
+        </category>
+    </xml>
+
     <script src="https://raw.githack.com/RPGillespie6/codemirror-quickstart/master/dist/cm6.bundle.min.js"></script>
+
+    <!-- Scripts de Blockly -->
+    <script src="https://cdn.jsdelivr.net/npm/blockly@11.1.0/blockly.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/blockly@11.1.0/javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/blockly@11.1.0/msg/es.js"></script>
+
     <script src="script.js"></script>
 </body>
 </html>

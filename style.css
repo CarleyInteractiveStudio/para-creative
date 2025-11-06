@@ -86,3 +86,82 @@ main#editor-container {
     border-right: 1px solid #333; /* Línea separadora sutil */
     color: #d4d4d4; /* Color de los números de línea */
 }
+
+/* --- Estilos del Modo S.T.C. --- */
+
+.hidden {
+    display: none !important;
+}
+
+#stc-container {
+    margin-top: 60px;
+    height: calc(100vh - 60px);
+    width: 100%;
+    display: flex;
+    background-color: #1e1e1e;
+}
+
+.stc-toolbox-panel {
+    width: 30%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #d4d4d4; /* Línea separadora blanca */
+    box-sizing: border-box;
+    background-color: #252526; /* Fondo oscuro para la toolbox */
+}
+
+.stc-workspace-panel {
+    width: 70%;
+    height: 100%;
+    position: relative; /* Necesario para Blockly */
+}
+
+/* --- Estilos específicos de Blockly --- */
+
+/* Fondo del espacio de trabajo */
+.blocklySvg {
+    background-color: #1e1e1e !important;
+}
+
+/* Estilos de la Toolbox de Blockly */
+.blocklyToolboxCategoryGroup {
+    background-color: #252526 !important; /* Fondo oscuro */
+}
+
+.blocklyTreeRow {
+    color: #d4d4d4 !important; /* Texto de las categorías */
+}
+
+.blocklyTreeRow.blocklyTreeSelected {
+    background-color: #3d3d3d !important; /* Categoría seleccionada */
+}
+
+.stc-search-bar {
+    padding: 10px;
+    border-bottom: 1px solid #333;
+}
+
+.stc-search-bar input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    background-color: #3d3d3d;
+    border: 1px solid #555;
+    color: #d4d4d4;
+    border-radius: 5px;
+}
+
+.stc-blocks-library {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.stc-categories {
+    height: 60px;
+    border-top: 1px solid #333;
+    overflow-x: auto;
+    white-space: nowrap; /* Para que las categorías fluyan horizontalmente */
+    padding: 10px;
+}
