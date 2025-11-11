@@ -6,11 +6,13 @@
             this.categories = {
                 // --- TÁCTICAS Y COMBATE ---
                 UNIDADES_Y_ROLES: ["soldado", "infanteria", "francotirador", "artilleria", "caballeria", "escuadron", "general", "comandante", "objetivo", "enemigo", "blanco", "contacto"],
-                EQUIPO_Y_ARMAS: ["rifle", "pistola", "granada", "canon", "misil", "escudo", "chaleco", "casco", "bayoneta", "katana", "ak-47", "m4", "rpg", "mina", "dron", "bomba", "c4"],
-                VEHICULOS: ["tanque", "jeep", "helicoptero", "submarino", "portaaviones", "destructor", "avion", "blindado", "moto", "camion", "humvee"],
+                EQUIPO_Y_ARMAS: ["rifle", "pistola", "granada", "canon", "misil", "escudo", "chaleco", "casco", "bayoneta", "katana", "ak-47", "m4", "rpg", "mina", "dron", "bomba", "c4", "glock", "mp5", "escopeta", "subfusil", "lanzacohetes"],
+                VEHICULOS: ["tanque", "jeep", "helicoptero", "submarino", "portaaviones", "destructor", "avion", "blindado", "moto", "camion", "humvee", "apc", "caza", "bombardero"],
+                EQUIPO_ADICIONAL: ["mirilla", "silenciador", "cargador ampliado", "botiquin", "placas", "blindaje"],
                 TERRENO_Y_UBICACIONES: ["trinchera", "bunker", "fortaleza", "base", "campo de batalla", "desierto", "bosque", "ciudad", "rio", "montaña", "puente", "torre", "edificio", "punto a"],
                 COMANDOS_DE_ACCION: ["atacar", "defender", "flanquear", "retirarse", "avanzar", "cargar", "emboscar", "patrullar", "reconocer", "capturar", "fuego", "disparad", "cubridme", "muevete"],
                 ESTRATEGIA_Y_SUMINISTROS: ["plan", "formacion", "linea de frente", "refuerzos", "inteligencia", "contraataque", "operacion", "maniobra", "logistica", "suministros", "recargando", "sin municion"],
+                ALERTAS_DE_COMBATE: ["esta a un toque", "enemigo abatido", "en mi posicion", "necesito curacion", "me estan dando", "blanco marcado", "lo veo", "esta aqui", "recibido"],
 
                 // --- ESTADO Y EMOCIONES ---
                 CONDICION_DE_COMBATE: ["victoria", "derrota", "rendicion", "moral", "fatiga", "herido", "eliminado", "oculto", "descubierto", "neutralizado", "tango abatido"],
@@ -20,6 +22,8 @@
                 MIEDO_ANSIEDAD: ["miedo", "asustado", "joder", "cuidado", "retirada", "nos matan", "demasiados", "no quiero morir", "es una trampa", "nos van a joder", "estoy temblando"],
                 SORPRESA_SHOCK: ["hostia", "de donde", "no lo vi", "que cono", "que ha pasado", "no entiendo", "estoy solo", "no me jodas"],
                 DETERMINACION_VALOR: ["esta vez si", "ahora caen", "voy a por ellos", "no se escapan", "adelante", "sin miedo", "por la gloria", "vamos", "resistid"],
+                CONFIANZA: ["lo tengo", "pan comido", "facil", "soy el mejor", "controlado", "es mio", "uno menos", "estoy seguro"],
+                DUDA: ["no estoy seguro", "creo que no", "dudo", "quizas", "es arriesgado", "no se si"],
                 TRISTEZA_PENA: ["caido", "lo perdimos", "no", "por que", "lo siento", "pena", "dolor", "un hombre menos", "no lo logro", "descansa en paz"],
                 CULPA_NOSTALGIA: ["mi culpa", "debi haber", "si yo hubiera", "lo siento tanto", "fue por mi", "casa", "como echo de menos", "cuando esto acabe"],
                 DESESPERACION_IMPOTENCIA: ["no hay salida", "estamos jodidos", "es el fin", "rendimos", "sin esperanza", "imposible", "estamos atrapados", "no hay nada que hacer", "estamos muertos"],
