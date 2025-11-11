@@ -4,12 +4,31 @@
     class TextAnalyzer {
         constructor() {
             this.categories = {
-                AYUDA: ["ayuda", "socorro", "auxilio", "ayudame"],
-                ESTRÉS: ["joder", "maldicion", "mierda", "carajo"],
-                ATAQUE: ["atacando", "disparando", "fuego", "atacad"],
-                DEFENSA: ["cubridme", "posicion", "defendiendo", "cubranme"],
-                AFIRMATIVO: ["si", "afirmativo", "entendido", "ok", "vale"],
-                NEGATIVO: ["no", "negativo", "nada"]
+                // --- TÁCTICAS ---
+                AYUDA: ["ayuda", "socorro", "auxilio", "ayudame", "necesito apoyo", "refuerzos", "estoy herido", "medico", "me han dado", "caido en combate", "necesito cobertura"],
+                ATAQUE: ["atacando", "disparando", "fuego", "atacad", "abrid fuego", "disparad", "a por ellos", "al ataque", "cargad", "eliminadlo", "neutralizad", "presionad"],
+                DEFENSA: ["cubridme", "posicion", "defendiendo", "cubranme", "mantened la linea", "aguantad", "a cubierto", "cuidado", "atentos", "nos flanquean", "proteged la zona"],
+                MOVIMIENTO: ["avanza", "adelante", "atras", "retrocede", "izquierda", "derecha", "corre", "muevete", "vamos", "flanqueando", "reposicionando", "subid", "bajad", "despejad el area"],
+                OBJETIVO: ["enemigo", "objetivo", "blanco", "localizado", "veo", "mira", "ahi", "contacto", "francotirador", "infanteria", "tanque", "multiples", "a las doce", "en el edificio"],
+                SOCIAL: ["espera", "seguidme", "cúbreme", "reagrupar", "alto", "id vosotros", "voy yo", "juntos", "en formacion", "te sigo"],
+                ACCION_ARMAS: ["recargando", "granada", "lanzo", "cubriendome", "recargo", "sin municion", "ultimo cargador", "bomba", "c4", "mortero"],
+                // --- CATEGORÍAS ESPECÍFICAS ---
+                EQUIPO_ARMAS: ["ak-47", "m4", "rpg", "mina", "dron", "rifle", "pistola", "francotirador"],
+                UBICACIONES: ["puente", "torre", "edificio rojo", "punto a", "base", "norte", "sur", "este", "oeste", "calle principal"],
+                JERGA_MILITAR: ["tango abatido", "necesito extraccion", "zona caliente", "en posicion", "soldado caido", "negativo, señor"],
+                // --- COMUNICACIÓN ---
+                AFIRMATIVO: ["si", "afirmativo", "entendido", "ok", "vale", "copiado", "recibido", "a la orden", "hecho", "procedo"],
+                NEGATIVO: ["no", "negativo", "nada", "imposible", "no puedo", "mision abortada", "cancelado", "incapaz"],
+                PREGUNTA: ["donde", "que", "quien", "como", "cuando", "por que", "cual es la orden", "estado", "informe", "me recibes"],
+                // --- EMOCIONALES ---
+                MIEDO_ANSIEDAD: ["miedo", "asustado", "joder", "cuidado", "retirada", "nos matan", "demasiados", "no quiero morir", "es una trampa", "nos van a joder", "estoy temblando"],
+                IRA_ODIO: ["rabia", "odio", "muere", "cabrones", "pagaran", "matadlos", "hijos de puta", "infelices", "os voy a matar", "me cago en sus muertos"],
+                TRISTEZA_PENA: ["caido", "lo perdimos", "no", "por que", "lo siento", "pena", "dolor", "un hombre menos", "no lo logro", "descansa en paz"],
+                DESESPERACION_IMPOTENCIA: ["no hay salida", "estamos jodidos", "es el fin", "rendimos", "sin esperanza", "imposible", "estamos atrapados", "no hay nada que hacer", "estamos muertos"],
+                VALOR: ["adelante", "sin miedo", "por la gloria", "vamos", "puedo", "resistid", "venga", "no pasaran", "hasta el final", "morir matando", "por mis cojones"],
+                CULPA_NOSTALGIA: ["mi culpa", "debi haber", "si yo hubiera", "lo siento tanto", "fue por mi", "casa", "como echo de menos", "cuando esto acabe"],
+                SOLEDAD_SHOCK: ["solo", "me han dejado", "no queda nadie", "estoy solo", "que ha pasado", "no entiendo", "todos muertos", "han acabado con todos", "no me jodas"],
+                ESTRÉS: ["joder", "maldicion", "mierda", "carajo", "cono", "puta", "me cago en", "la hostia", "su puta madre", "me cago en dios"]
             };
         }
 
