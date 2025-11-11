@@ -16,6 +16,7 @@
                 EQUIPO_ARMAS: ["ak-47", "m4", "rpg", "mina", "dron", "rifle", "pistola", "francotirador"],
                 UBICACIONES: ["puente", "torre", "edificio rojo", "punto a", "base", "norte", "sur", "este", "oeste", "calle principal"],
                 JERGA_MILITAR: ["tango abatido", "necesito extraccion", "zona caliente", "en posicion", "soldado caido", "negativo, señor"],
+                JERGA_GAMER: ["campero", "gankear", "mochazo", "rushear", "respawnear", "headshot", "nerfear", "buffear", "lootear", "farmear", "lag", "noob", "pro"],
                 // --- COMUNICACIÓN ---
                 AFIRMATIVO: ["si", "afirmativo", "entendido", "ok", "vale", "copiado", "recibido", "a la orden", "hecho", "procedo"],
                 NEGATIVO: ["no", "negativo", "nada", "imposible", "no puedo", "mision abortada", "cancelado", "incapaz"],
@@ -28,7 +29,7 @@
                 VALOR: ["adelante", "sin miedo", "por la gloria", "vamos", "puedo", "resistid", "venga", "no pasaran", "hasta el final", "morir matando", "por mis cojones"],
                 CULPA_NOSTALGIA: ["mi culpa", "debi haber", "si yo hubiera", "lo siento tanto", "fue por mi", "casa", "como echo de menos", "cuando esto acabe"],
                 SOLEDAD_SHOCK: ["solo", "me han dejado", "no queda nadie", "estoy solo", "que ha pasado", "no entiendo", "todos muertos", "han acabado con todos", "no me jodas"],
-                ESTRÉS: ["joder", "maldicion", "mierda", "carajo", "cono", "puta", "me cago en", "la hostia", "su puta madre", "me cago en dios"]
+                ESTRÉS: ["joder", "maldicion", "mierda", "carajo", "coño", "puta", "me cago en", "la hostia", "su puta madre", "me cago en dios"]
             };
         }
 
