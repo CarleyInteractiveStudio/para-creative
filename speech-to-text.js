@@ -106,6 +106,7 @@
             this.recognition = new SpeechRecognition();
             this.analyzer = new TextAnalyzer(); // Instanciar el analizador
             this.isListening = false;
+            this.currentLang = 'es'; // Idioma por defecto
 
             // Callbacks que el usuario definirá
             this.onAnalysisCallback = () => {}; // Nuevo callback para el análisis
@@ -160,14 +161,21 @@
         }
 
         /**
-         * Inicia la escucha del micrófono.
-         * @param {string} lang - El idioma para el reconocimiento (ej. 'es-ES', 'en-US').
+         * Establece el idioma para el reconocimiento de voz.
+         * @param {string} lang - El código de idioma (ej. 'es', 'en').
          */
-        start(lang = 'es-ES') {
+        setLanguage(lang) {
+            this.currentLang = lang;
+        }
+
+        /**
+         * Inicia la escucha del micrófono.
+         */
+        start() {
             if (!this.recognition || this.isListening) {
                 return;
             }
-            this.recognition.lang = lang;
+            this.recognition.lang = this.currentLang;
             this.recognition.interimResults = true; // Para resultados parciales
             this.recognition.continuous = true; // Para que no se detenga tras la primera frase
             this.recognition.start();
@@ -191,11 +199,18 @@
     // El objeto que será devuelto para ser usado en scripts .ces
     const runtimeApi = {
         /**
-         * Inicia la grabación del micrófono.
-         * @param {string} [lang='es-ES'] - El código de idioma para el reconocimiento.
+         * Establece el idioma para el futuro reconocimiento de voz.
+         * @param {string} [lang='es'] - El código de idioma (ej. 'es', 'en').
          */
-        iniciarGrabacion: function(lang = 'es-ES') {
-            speechService.start(lang);
+        setLanguage: function(lang = 'es') {
+            speechService.setLanguage(lang);
+        },
+
+        /**
+         * Inicia la grabación del micrófono con el idioma previamente configurado.
+         */
+        iniciarGrabacion: function() {
+            speechService.start();
         },
 
         /**
@@ -260,7 +275,6 @@
         alAbrir: function(panel) {
             panel.agregarTexto("Panel de Prueba: Análisis de Voz", { tamaño: 'grande' });
 
-            let idiomaSeleccionado = 'es-ES';
             let categoriasPersonalizadas = JSON.stringify(speechService.analyzer.categories, null, 2);
 
             // --- Sección de Controles ---
@@ -269,11 +283,11 @@
                 if (speechService.isListening) {
                     runtimeApi.detenerGrabacion();
                 } else {
-                    runtimeApi.iniciarGrabacion(idiomaSeleccionado);
+                    runtimeApi.iniciarGrabacion();
                 }
             });
-            controlesCont.agregarDropdown("Idioma:", ["es-ES", "en-US", "fr-FR", "de-DE"], {
-                alCambiar: (op) => { idiomaSeleccionado = op; }
+            controlesCont.agregarDropdown("Idioma:", ["es", "en", "fr", "de"], {
+                alCambiar: (op) => { runtimeApi.setLanguage(op); }
             });
 
             // --- Sección de Resultados ---
