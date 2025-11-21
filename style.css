@@ -1,110 +1,140 @@
-/* Estilos generales */
 body {
+    font-family: sans-serif;
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    background-color: #1e1e1e;
-    color: #d4d4d4;
+    height: 100vh;
+    display: flex;
     overflow: hidden;
 }
 
-/* Barra superior */
-.top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    background-color: #252526;
+.editor-container {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 20px;
-    box-sizing: border-box;
-    border-bottom: 1px solid #333;
-    z-index: 10;
-}
-
-/* Contenedores de burbuja */
-.bubble-container {
-    background-color: #3d3d3d;
-    border-radius: 50px;
-    padding: 8px 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.script-name {
-    flex-grow: 1;
-    justify-content: center;
-    margin: 0 20px;
-    background-color: transparent;
-    color: #cccccc;
-    font-weight: bold;
-}
-
-/* Botones */
-.top-bar button {
-    background: none;
-    border: none;
-    color: #cccccc;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 5px;
-    transition: background-color 0.2s;
-}
-
-.top-bar button:hover {
-    background-color: #505050;
-}
-
-.modes button.active {
-    color: #4dc9b0;
-    font-weight: bold;
-}
-
-/* Contenedor del editor de texto */
-main#editor-container {
-    margin-top: 60px;
-    height: calc(100vh - 60px);
     width: 100%;
-}
-
-/* Contenedor del editor de bloques */
-#stc-container {
-    margin-top: 60px;
-    height: calc(100vh - 60px);
-    width: 100%;
-}
-
-/* --- Estilos de CodeMirror --- */
-.cm-editor {
     height: 100%;
+}
+
+.left-panel {
+    width: 30%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid #ccc;
+    box-sizing: border-box;
+}
+
+.right-panel {
+    width: 70%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    background-color: #f0f0f0;
+    position: relative; /* Needed for absolute positioning of dropped blocks */
+}
+
+.search-container {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+}
+
+.search-container input {
     width: 100%;
-    font-size: 16px;
+    padding: 8px;
+    box-sizing: border-box;
 }
 
-.cm-gutters {
-    background-color: #1e1e1e;
-    border-right: 1px solid #333;
-    color: #d4d4d4;
+.blocks-container {
+    flex-grow: 1;
+    padding: 10px;
+    overflow-x: auto; /* Horizontal scroll */
+    overflow-y: hidden;
+    white-space: nowrap; /* Keep blocks in a single line */
+    border-bottom: 1px solid #ccc;
 }
 
-/* --- Estilos de Blockly --- */
-.blocklySvg {
-    background-color: #1e1e1e !important;
+.categories-container {
+    height: 200px; /* Fixed height */
+    padding: 10px;
+    overflow-y: auto; /* Vertical scroll */
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Spacing between buttons */
 }
 
-.blocklyToolboxDiv {
-    background-color: #252526 !important; /* Fondo oscuro para la toolbox */
-    color: #d4d4d4 !important; /* Texto de las categorías */
+.categories-container button {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    text-align: left;
 }
 
-.blocklyTreeRow {
-    color: #d4d4d4 !important;
+.categories-container button:hover {
+    background-color: #e0e0e0;
 }
 
-.blocklyTreeRow.blocklyTreeSelected {
-    background-color: #3d3d3d !important;
+.block {
+    display: inline-block;
+    padding: 10px 15px;
+    margin: 5px;
+    color: white;
+    border-radius: 5px;
+    cursor: grab;
+    font-weight: bold;
+    user-select: none; /* Prevents text selection while dragging */
+}
+
+.block.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.block.dropped {
+    position: absolute; /* Allow positioning within the right panel */
+    cursor: move;
+}
+
+.block.dragging-canvas {
+    opacity: 0.7;
+    pointer-events: none; /* Prevent the block from interfering with drop targets */
+}
+
+/* --- Container Block Styles --- */
+.drop-zone {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 2px dashed #888;
+    margin: 5px;
+    padding: 20px 10px; /* Provides space for dropping blocks inside */
+    min-height: 20px;
+    position: relative;
+}
+
+.drop-zone-active {
+    background-color: rgba(0, 255, 0, 0.3); /* Highlight when dragging over */
+}
+
+/* --- Sprite Style --- */
+#sprite {
+    width: 50px;
+    height: 50px;
+    background-color: red;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* --- Editable Field Styles --- */
+.editable-field {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 2px 4px;
+    color: black;
+    font-weight: bold;
+    text-align: center;
+    width: 40px; /* Default width */
+}
+
+.editable-field[type="text"] {
+    width: 60px; /* Wider for text */
 }
