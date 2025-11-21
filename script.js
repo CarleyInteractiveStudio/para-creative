@@ -71,35 +71,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     rightPanel.addEventListener('drop', (event) => {
         event.preventDefault();
-        // Check if the drag originated from within the canvas itself
         if (event.dataTransfer.getData('source') === 'canvas') return;
 
         const blockId = event.dataTransfer.getData('text/plain');
         const blockDef = blockDefinitions.find(b => b.id === blockId);
         if (blockDef) {
-            createCanvasBlock(blockDef, event.clientX, event.clientY);
+            // Create a new script container for the new block
+            const scriptContainer = document.createElement('div');
+            scriptContainer.className = 'script-container';
+
+            const blockElement = createCanvasBlock(blockDef);
+            scriptContainer.appendChild(blockElement);
+
+            // Position the new script container
+            const panelRect = rightPanel.getBoundingClientRect();
+            scriptContainer.style.position = 'absolute';
+            scriptContainer.style.left = `${event.clientX - panelRect.left}px`;
+            scriptContainer.style.top = `${event.clientY - panelRect.top}px`;
+
+            rightPanel.appendChild(scriptContainer);
         }
     });
 
-    function createCanvasBlock(blockDef, clientX, clientY) {
+    function createCanvasBlock(blockDef) {
         const blockElement = document.createElement('div');
         blockElement.className = 'block dropped';
         blockElement.innerHTML = createBlockHTML(blockDef.text);
         blockElement.style.backgroundColor = blockDef.color;
         blockElement.dataset.blockId = blockDef.id;
 
-        // If it's a container, add a drop zone
         if (blockDef.isContainer) {
-            // Append drop zone without overwriting the input fields
             const dropZone = document.createElement('div');
             dropZone.className = 'drop-zone';
             blockElement.appendChild(dropZone);
         }
-
-        const panelRect = rightPanel.getBoundingClientRect();
-        blockElement.style.left = `${clientX - panelRect.left}px`;
-        blockElement.style.top = `${clientY - panelRect.top}px`;
-        rightPanel.appendChild(blockElement);
+        return blockElement;
     }
 
     function createBlockHTML(text) {
@@ -118,10 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let offsetY = 0;
 
     rightPanel.addEventListener('mousedown', (event) => {
-        // Prevent starting a drag from an editable field
-        if (event.target.classList.contains('editable-field')) {
-            return;
-        }
+        if (event.target.classList.contains('editable-field')) return;
 
         const targetBlock = event.target.closest('.block.dropped');
         if (!targetBlock) return;
@@ -129,19 +132,18 @@ document.addEventListener('DOMContentLoaded', () => {
         activeBlock = targetBlock;
         event.stopPropagation();
 
-        // If the block was nested, move it to the panel to drag it freely
-        if (activeBlock.parentElement.classList.contains('drop-zone')) {
-            const parentRect = activeBlock.parentElement.getBoundingClientRect();
-            const panelRect = rightPanel.getBoundingClientRect();
-            activeBlock.style.left = `${parentRect.left - panelRect.left}px`;
-            activeBlock.style.top = `${parentRect.top - panelRect.top}px`;
-            rightPanel.appendChild(activeBlock);
-            activeBlock.style.position = 'absolute';
-        }
-
+        // Detach the block from its current container to drag it freely
+        const originalContainer = activeBlock.closest('.script-container, .drop-zone');
         const rect = activeBlock.getBoundingClientRect();
+        const panelRect = rightPanel.getBoundingClientRect();
+
         offsetX = event.clientX - rect.left;
         offsetY = event.clientY - rect.top;
+
+        // Move block to the top level for dragging
+        rightPanel.appendChild(activeBlock);
+        activeBlock.style.left = `${rect.left - panelRect.left}px`;
+        activeBlock.style.top = `${rect.top - panelRect.top}px`;
 
         activeBlock.classList.add('dragging-canvas');
         activeBlock.style.zIndex = 1000;
@@ -153,13 +155,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function onMouseMove(event) {
         if (!activeBlock) return;
         const panelRect = rightPanel.getBoundingClientRect();
-        let newLeft = event.clientX - panelRect.left - offsetX;
-        let newTop = event.clientY - panelRect.top - offsetY;
+        activeBlock.style.left = `${event.clientX - panelRect.left - offsetX}px`;
+        activeBlock.style.top = `${event.clientY - panelRect.top - offsetY}px`;
 
-        activeBlock.style.left = `${newLeft}px`;
-        activeBlock.style.top = `${newTop}px`;
-
-        // Highlight potential drop zones
         highlightDropZones(event.clientX, event.clientY);
     }
 
@@ -170,21 +168,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (dropTarget) {
             if (dropTarget.classList.contains('drop-zone')) {
-                // Nesting logic
                 nestBlock(activeBlock, dropTarget);
-            } else {
-                // Snapping logic
+            } else if (dropTarget.classList.contains('block')) {
                 snapBlock(activeBlock, dropTarget);
             }
+        } else {
+            // If dropped in an empty space, create a new script container
+            const scriptContainer = document.createElement('div');
+            scriptContainer.className = 'script-container';
+            scriptContainer.appendChild(activeBlock);
+            rightPanel.appendChild(scriptContainer);
+
+            // Position the new script
+            const panelRect = rightPanel.getBoundingClientRect();
+            scriptContainer.style.position = 'absolute';
+            scriptContainer.style.left = `${event.clientX - panelRect.left - offsetX}px`;
+            scriptContainer.style.top = `${event.clientY - panelRect.top - offsetY}px`;
         }
 
+        // Cleanup styles
         clearHighlights();
         activeBlock.classList.remove('dragging-canvas');
         activeBlock.style.zIndex = '';
+        activeBlock.style.left = '';
+        activeBlock.style.top = '';
+        activeBlock.style.position = ''; // Reset position
         activeBlock = null;
 
         document.removeEventListener('mousemove', onMouseMove);
         document.removeEventListener('mouseup', onMouseUp);
+
+        // Cleanup empty script containers
+        cleanupEmptyContainers();
     }
 
     function highlightDropZones(clientX, clientY) {
@@ -196,38 +211,59 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function findDropTarget(clientX, clientY) {
-        const elements = document.elementsFromPoint(clientX, clientY);
-        // Find the first valid drop target that isn't the active block itself or a child of it
-        return elements.find(el =>
-            (el.classList.contains('dropped') || el.classList.contains('drop-zone')) &&
-            el !== activeBlock &&
-            !activeBlock.contains(el)
-        );
+        const dropTargets = Array.from(document.querySelectorAll('.block.dropped, .drop-zone'));
+        let bestTarget = null;
+        let minDistance = Infinity;
+
+        for (const target of dropTargets) {
+            if (target === activeBlock || activeBlock.contains(target)) {
+                continue; // Skip the block being dragged or its children
+            }
+
+            const rect = target.getBoundingClientRect();
+
+            // Check if the cursor is within the horizontal bounds of the target
+            if (clientX >= rect.left && clientX <= rect.right) {
+                // Prioritize drop-zones
+                if (target.classList.contains('drop-zone')) {
+                    // If cursor is inside a drop-zone, it's the best target
+                    if (clientY >= rect.top && clientY <= rect.bottom) {
+                        return target;
+                    }
+                }
+
+                // For snapping to other blocks, check vertical proximity
+                const distance = Math.abs(clientY - rect.bottom); // Check distance to the bottom edge
+                if (distance < 30 && distance < minDistance) { // 30px snap threshold
+                    minDistance = distance;
+                    bestTarget = target;
+                }
+            }
+        }
+
+        return bestTarget;
     }
 
     function nestBlock(block, dropZone) {
         dropZone.appendChild(block);
-        block.style.position = 'relative';
-        block.style.left = '0';
-        block.style.top = '0';
     }
 
     function snapBlock(block, targetBlock) {
-        // Simple vertical snapping: append it after the target block
+        // Insert the active block directly after the target block in the DOM
         targetBlock.parentNode.insertBefore(block, targetBlock.nextSibling);
-
-        // This example uses DOM order for sequencing.
-        // For visual snapping, we'd adjust top/left based on targetBlock's rect.
-        // For simplicity, we'll handle visual layout with CSS for now.
-        // Make blocks in sequence display vertically.
-        if (targetBlock.parentElement.classList.contains('right-panel')) {
-             // Reset styles for direct canvas children if needed later
-        }
     }
 
     function clearHighlights() {
         document.querySelectorAll('.drop-zone-active').forEach(el => {
             el.classList.remove('drop-zone-active');
+        });
+    }
+
+    function cleanupEmptyContainers() {
+        document.querySelectorAll('.script-container, .drop-zone').forEach(container => {
+            if (container.children.length === 0 && container.className !== 'right-panel') {
+                container.remove();
+            }
         });
     }
 
@@ -256,24 +292,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function executeBlocks() {
-        const hatBlocks = rightPanel.querySelectorAll('.block[data-block-id="when_key_pressed"]');
+        // Find all top-level scripts that start with a "hat" block
+        document.querySelectorAll('.script-container').forEach(script => {
+            const hatBlock = script.querySelector(':scope > .block[data-block-id="when_key_pressed"]');
+            if (hatBlock) {
+                const keyInput = hatBlock.querySelector('.editable-field');
+                const keyToPress = keyInput ? keyInput.value.toLowerCase() : ' ';
 
-        hatBlocks.forEach(hat => {
-            const keyInput = hat.querySelector('.editable-field');
-            const keyToPress = keyInput ? keyInput.value.toLowerCase() : ' ';
-
-            if (pressedKeys.has(keyToPress)) {
-                let currentBlock = hat.nextElementSibling;
-                while (currentBlock) {
-                    const blockId = currentBlock.dataset.blockId;
-                    if (blockFunctions[blockId]) {
-                        // Pass the block element to the function to access its inputs
-                        blockFunctions[blockId](currentBlock);
-                    }
-                    currentBlock = currentBlock.nextElementSibling;
+                if (pressedKeys.has(keyToPress)) {
+                    // Start execution from the block *after* the hat block
+                    executeScript(hatBlock.nextElementSibling);
                 }
             }
         });
+    }
+
+    function executeScript(startBlock) {
+        let currentBlock = startBlock;
+        while (currentBlock) {
+            const blockId = currentBlock.dataset.blockId;
+            const blockFunction = blockFunctions[blockId];
+
+            if (blockFunction) {
+                blockFunction(currentBlock);
+            }
+
+            // Move to the next block in the same sequence
+            currentBlock = currentBlock.nextElementSibling;
+        }
     }
 
     const blockFunctions = {
@@ -293,6 +339,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const value = block.querySelector('.editable-field').value;
             const degrees = parseFloat(value) || 0;
             spriteState.rotation -= degrees;
+        },
+        'if_then': (block) => {
+            // Placeholder for condition checking. For now, it's always true.
+            const condition = true;
+            if (condition) {
+                const dropZone = block.querySelector('.drop-zone');
+                if (dropZone) {
+                    // Execute the script nested inside the 'if' block
+                    executeScript(dropZone.firstElementChild);
+                }
+            }
         }
     };
 

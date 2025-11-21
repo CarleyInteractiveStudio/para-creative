@@ -44,28 +44,30 @@ body {
 .blocks-container {
     flex-grow: 1;
     padding: 10px;
-    overflow-x: auto; /* Horizontal scroll */
-    overflow-y: hidden;
-    white-space: nowrap; /* Keep blocks in a single line */
+    overflow-y: auto; /* Vertical scroll */
+    overflow-x: hidden;
     border-bottom: 1px solid #ccc;
 }
 
 .categories-container {
-    height: 200px; /* Fixed height */
     padding: 10px;
-    overflow-y: auto; /* Vertical scroll */
+    overflow-x: auto; /* Horizontal scroll */
+    overflow-y: hidden;
     display: flex;
-    flex-direction: column;
-    gap: 5px; /* Spacing between buttons */
+    flex-direction: row; /* Lay out buttons horizontally */
+    gap: 10px;
+    white-space: nowrap; /* Keep buttons in a single line */
+    border-top: 1px solid #ccc;
 }
 
 .categories-container button {
-    width: 100%;
-    padding: 10px;
+    width: auto; /* Auto-size width */
+    padding: 10px 15px; /* More horizontal padding */
     border: 1px solid #ccc;
     background-color: #f0f0f0;
     cursor: pointer;
-    text-align: left;
+    text-align: center;
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 .categories-container button:hover {
@@ -73,7 +75,7 @@ body {
 }
 
 .block {
-    display: inline-block;
+    display: block; /* Stack blocks vertically */
     padding: 10px 15px;
     margin: 5px;
     color: white;
@@ -88,12 +90,21 @@ body {
     cursor: grabbing;
 }
 
+.script-container {
+    display: inline-block; /* Allow multiple scripts side-by-side */
+    vertical-align: top;
+    margin: 10px;
+    padding-bottom: 20px; /* Add space at the bottom for snapping */
+}
+
 .block.dropped {
-    position: absolute; /* Allow positioning within the right panel */
+    position: relative; /* Let the block flow in its container */
     cursor: move;
+    display: block; /* Ensure blocks stack */
 }
 
 .block.dragging-canvas {
+    position: absolute; /* Re-enable absolute positioning ONLY while dragging */
     opacity: 0.7;
     pointer-events: none; /* Prevent the block from interfering with drop targets */
 }
