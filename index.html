@@ -3,85 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editor de Código</title>
+    <title>Carl IA</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <header class="top-bar">
-        <div class="bubble-container controls">
-            <button id="save-btn" title="Guardar">💾</button>
-            <button id="undo-btn" title="Deshacer">↩️</button>
-            <button id="redo-btn" title="Rehacer">↪️</button>
-        </div>
-        <div class="bubble-container script-name">
-            <span>script.ces</span>
-        </div>
-        <div class="bubble-container modes">
-            <button id="pc-mode" class="active">P.C.</button>
-            <button id="stc-mode">S.T.C.</button>
-        </div>
-    </header>
-
-    <main id="editor-container"></main>
-
-    <div id="stc-container" style="display: none;">
-        <!-- Blockly se inyectará aquí directamente -->
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1>Carl IA</h1>
+            <button id="new-chat-btn">Nuevo Chat</button>
+        </header>
+        <main class="chat-messages" id="chat-messages">
+            <!-- Los mensajes del chat se agregarán aquí -->
+        </main>
+        <footer class="chat-input-area">
+            <textarea id="message-input" placeholder="Escribe tu mensaje..."></textarea>
+            <button id="send-btn">Enviar</button>
+        </footer>
     </div>
-
-    <!-- Definición de la Toolbox de Blockly (oculta) -->
-    <xml id="stc-toolbox-xml" style="display: none">
-        <category name="Lógica" colour="%{BKY_LOGIC_HUE}">
-            <block type="controls_if"></block>
-            <block type="logic_compare"></block>
-            <block type="logic_operation"></block>
-            <block type="logic_negate"></block>
-            <block type="logic_boolean"></block>
-        </category>
-        <category name="Bucles" colour="%{BKY_LOOPS_HUE}">
-            <block type="controls_repeat_ext">
-                <value name="TIMES">
-                    <shadow type="math_number">
-                        <field name="NUM">10</field>
-                    </shadow>
-                </value>
-            </block>
-            <block type="controls_whileUntil"></block>
-        </category>
-        <category name="Matemáticas" colour="%{BKY_MATH_HUE}">
-            <block type="math_number"></block>
-            <block type="math_arithmetic">
-                <value name="A">
-                    <shadow type="math_number">
-                        <field name="NUM">1</field>
-                    </shadow>
-                </value>
-                <value name="B">
-                    <shadow type="math_number">
-                        <field name="NUM">1</field>
-                    </shadow>
-                </value>
-            </block>
-        </category>
-        <category name="Texto" colour="%{BKY_TEXTS_HUE}">
-            <block type="text"></block>
-            <block type="text_print">
-                <value name="TEXT">
-                    <shadow type="text">
-                        <field name="TEXT">abc</field>
-                    </shadow>
-                </value>
-            </block>
-        </category>
-    </xml>
-
-    <script src="https://raw.githack.com/RPGillespie6/codemirror-quickstart/master/dist/cm6.bundle.min.js"></script>
-
-    <!-- Scripts de Blockly -->
-    <script src="https://cdn.jsdelivr.net/npm/blockly@11.1.0/blockly.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/blockly@11.1.0/javascript.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/blockly@11.1.0/msg/es.js"></script>
-
     <script src="script.js"></script>
 </body>
 </html>

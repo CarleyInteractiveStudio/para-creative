@@ -1,84 +1,89 @@
-// Lógica del editor de código
-
 document.addEventListener('DOMContentLoaded', () => {
+    const chatMessages = document.getElementById('chat-messages');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const newChatBtn = document.getElementById('new-chat-btn');
+    let chatHistory = [];
 
-    // --- Selectores de Elementos ---
-    const editorContainer = document.getElementById('editor-container');
-    const stcContainer = document.getElementById('stc-container');
-    const pcModeBtn = document.getElementById('pc-mode');
-    const stcModeBtn = document.getElementById('stc-mode');
-    const saveBtn = document.getElementById('save-btn');
-    const undoBtn = document.getElementById('undo-btn');
-    const redoBtn = document.getElementById('redo-btn');
-    const toolboxXml = document.getElementById('stc-toolbox-xml');
-
-    // --- Inicialización del Editor de Código (CodeMirror) ---
-    const initialCode = `// Bienvenido al Editor de Código\nfunction saludar() {\n    console.log("¡Hola, mundo!");\n}\nsaludar();`;
-    const initialState = cm6.createEditorState(initialCode);
-    const view = cm6.createEditorView(initialState, editorContainer);
-    view.focus();
-    window.editorView = view;
-
-    // --- Inicialización del Editor de Bloques (Blockly) ---
-    const blocklyWorkspace = Blockly.inject('stc-container', {
-        toolbox: toolboxXml, // Usar la toolbox por defecto
-        theme: Blockly.Themes.Dark,
-        renderer: 'zelos'
-    });
-    window.blocklyWorkspace = blocklyWorkspace;
-
-    // --- Lógica de Cambio de Modo ---
-    function setActiveMode(mode) {
-        if (mode === 'pc') {
-            pcModeBtn.classList.add('active');
-            stcModeBtn.classList.remove('active');
-            editorContainer.style.display = 'block';
-            stcContainer.style.display = 'none';
-            view.focus();
-        } else if (mode === 'stc') {
-            stcModeBtn.classList.add('active');
-            pcModeBtn.classList.remove('active');
-            editorContainer.style.display = 'none';
-            stcContainer.style.display = 'flex';
-            Blockly.svgResize(blocklyWorkspace);
+    // Cargar historial de chat del localStorage
+    function loadChatHistory() {
+        const savedHistory = localStorage.getItem('chatHistory');
+        if (savedHistory) {
+            chatHistory = JSON.parse(savedHistory);
+            chatHistory.forEach(message => addMessage(message.text, message.sender, false));
         }
     }
 
-    stcContainer.style.display = 'none';
-    pcModeBtn.addEventListener('click', () => setActiveMode('pc'));
-    stcModeBtn.addEventListener('click', () => setActiveMode('stc'));
+    // Guardar historial de chat en el localStorage
+    function saveChatHistory() {
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+    }
 
-    window.addEventListener('resize', () => {
-        if (stcContainer.style.display === 'flex') {
-            Blockly.svgResize(blocklyWorkspace);
+    // Función para añadir un mensaje a la interfaz
+    function addMessage(message, sender, save = true) {
+        const messageElement = document.createElement('div');
+        messageElement.className = `message ${sender}-message`;
+
+        const messageText = document.createElement('span');
+        messageText.innerText = message;
+        messageElement.appendChild(messageText);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.innerText = 'Copiar';
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(message).then(() => {
+                copyBtn.innerText = 'Copiado!';
+                setTimeout(() => copyBtn.innerText = 'Copiar', 2000);
+            });
+        });
+        messageElement.appendChild(copyBtn);
+
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+
+        if (save) {
+            chatHistory.push({ text: message, sender });
+            saveChatHistory();
+        }
+    }
+
+    // Función para simular una respuesta de la IA
+    function simulateIaResponse(userMessage) {
+        const response = `Respuesta simulada a: "${userMessage}"`;
+        addMessage(response, 'ia');
+
+        if (userMessage.toLowerCase().includes('código')) {
+            const codeResponse = `motor.crear_archivo('nuevo_script.js');`;
+            addMessage(codeResponse, 'ia');
+        }
+    }
+
+    // Enviar mensaje al pulsar el botón
+    sendBtn.addEventListener('click', () => {
+        const message = messageInput.value.trim();
+        if (message) {
+            addMessage(message, 'user');
+            messageInput.value = '';
+            setTimeout(() => simulateIaResponse(message), 500);
         }
     });
 
-    // --- Lógica de Botones de Control ---
-    saveBtn.addEventListener('click', () => {
-        let code = '';
-        if (pcModeBtn.classList.contains('active')) {
-            code = view.state.doc.toString();
-        } else {
-            code = Blockly.JavaScript.workspaceToCode(blocklyWorkspace);
+    // Enviar mensaje al pulsar Enter
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendBtn.click();
         }
-        const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'script.ces';
-        a.click();
-        URL.revokeObjectURL(a.href);
     });
 
-    undoBtn.addEventListener('click', () => {
-        if (pcModeBtn.classList.contains('active')) cm6.undo(view);
-        else blocklyWorkspace.undo(false);
+    // Iniciar nuevo chat
+    newChatBtn.addEventListener('click', () => {
+        chatMessages.innerHTML = '';
+        chatHistory = [];
+        localStorage.removeItem('chatHistory');
     });
 
-    redoBtn.addEventListener('click', () => {
-        if (pcModeBtn.classList.contains('active')) cm6.redo(view);
-        else blocklyWorkspace.undo(true);
-    });
-
-    console.log("Editores inicializados.");
+    // Cargar el historial al iniciar
+    loadChatHistory();
 });
