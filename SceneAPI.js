@@ -1,298 +1,261 @@
-// Materia.js
-// This file contains the Materia class.
+/**
+ * @fileoverview Provides utility functions for mathematical and geometrical calculations.
+ * Includes vector operations, matrix transformations, and collision detection algorithms.
+ */
 
-import { Transform } from './Components.js';
-import { currentScene } from './SceneManager.js';
+import { Transform, SpriteRenderer, Camera, Water, LineCollider2D, Gyzmo } from './Components.js';
 
-let MATERIA_ID_COUNTER = 0;
-export class Materia {
-    constructor(name = 'Materia') {
-        this.id = MATERIA_ID_COUNTER++;
-        this.name = `${name}`;
-        this.isActive = true;
-        this.isCollapsed = false; // For hierarchy view
-        this.layer = 0; // Layer index, 0 is 'Default'
-        this.tag = 'Untagged';
-        this.flags = {};
-        this.leyes = [];
-        this.parent = null;
-        this.children = [];
-        this.prefabPath = null;
+// Vector operations can be added here if needed.
+
+/**
+ * Calculates the world-space vertices of an object's Oriented Bounding Box (OOB).
+ * @param {Materia} materia The game object.
+ * @param {{x:number, y:number}} [explicitPosition] Optional explicit world position.
+ * @returns {Array<{x: number, y: number}>|null} An array of 4 vertex points or null if not applicable.
+ */
+export function getOOB(materia, explicitPosition = null) {
+    const transform = materia.getComponent(Transform);
+    if (!transform) return null;
+
+    const spriteRenderer = materia.getComponent(SpriteRenderer);
+    const water = materia.getComponent(Water);
+    const lineCollider = materia.getComponent(LineCollider2D);
+    const gyzmo = materia.getComponent(Gyzmo);
+
+    // Special case for World-Space Water
+    if (water && water._initializedWorldSpace) {
+        const b = water.bounds;
+        return [
+            { x: b.minX, y: b.minY },
+            { x: b.maxX, y: b.minY },
+            { x: b.maxX, y: b.maxY },
+            { x: b.minX, y: b.maxY }
+        ];
     }
 
-    setFlag(key, value) {
-        this.flags[key] = value;
-    }
+    let w, h, pivotX = 0.5, pivotY = 0.5;
 
-    getFlag(key) {
-        return this.flags[key];
-    }
+    if (spriteRenderer && spriteRenderer.sprite && (spriteRenderer.sprite.naturalWidth || spriteRenderer.sprite.width)) {
+        w = spriteRenderer.sprite.naturalWidth || spriteRenderer.sprite.width;
+        h = spriteRenderer.sprite.naturalHeight || spriteRenderer.sprite.height;
+        pivotX = spriteRenderer.pivot ? spriteRenderer.pivot.x : 0.5;
+        pivotY = spriteRenderer.pivot ? spriteRenderer.pivot.y : 0.5;
 
-    // --- Spanish Aliases for Scripting ---
-    get estaActivado() { return this.isActive; }
-    set estaActivado(v) { this.isActive = v; }
-    get activo() { return this.isActive; }
-    set activo(v) { this.isActive = v; }
-
-    addComponent(component) {
-        this.leyes.push(component);
-        component.materia = this;
-    }
-
-    getComponent(componentClass) {
-        if (typeof componentClass !== 'function') return null;
-        return this.leyes.find(ley => ley instanceof componentClass);
-    }
-
-    getComponents(componentClass) {
-        if (typeof componentClass !== 'function') return [];
-        return this.leyes.filter(ley => ley instanceof componentClass);
-    }
-
-    getComponentByName(name) {
-        return this.leyes.find(ley => ley.constructor.name === name);
-    }
-
-    /**
-     * Busca un componente en los padres de esta materia.
-     */
-    getComponentInParent(componentClass) {
-        let current = this.parent;
-        // Resolve ID to object if necessary
-        if (typeof current === 'number') {
-            try { current = (this.scene || currentScene).findMateriaById(current); } catch (e) { return null; }
-        }
-
-        while (current) {
-            const comp = typeof componentClass === 'string' ? current.getComponentByName(componentClass) : current.getComponent(componentClass);
-            if (comp) return comp;
-            current = current.parent;
-            if (typeof current === 'number') {
-                try { current = currentScene.findMateriaById(current); } catch (e) { return null; }
+        // If using a sprite sheet, use the sprite's rect dimensions and pivot
+        if (spriteRenderer.spriteSheet && spriteRenderer.spriteName && spriteRenderer.spriteSheet.sprites[spriteRenderer.spriteName]) {
+            const spriteData = spriteRenderer.spriteSheet.sprites[spriteRenderer.spriteName];
+            if (spriteData.rect) {
+                w = spriteData.rect.width;
+                h = spriteData.rect.height;
+                pivotX = spriteData.pivot.x;
+                pivotY = spriteData.pivot.y;
             }
         }
+    } else if (water) {
+        w = water.width;
+        h = water.height;
+        pivotX = 0.5;
+        pivotY = 0.5;
+    } else if (lineCollider && lineCollider.points && lineCollider.points.length > 0) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const p of lineCollider.points) {
+            minX = Math.min(minX, p.x); minY = Math.min(minY, p.y);
+            maxX = Math.max(maxX, p.x); maxY = Math.max(maxY, p.y);
+        }
+        w = maxX - minX;
+        h = maxY - minY;
+        // Adjust pivot to match the bounds center
+        pivotX = -minX / (w || 1);
+        pivotY = -minY / (h || 1);
+    } else if (gyzmo && gyzmo.layers && gyzmo.layers.length > 0) {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const l of gyzmo.layers) {
+            minX = Math.min(minX, l.x - l.width / 2); minY = Math.min(minY, l.y - l.height / 2);
+            maxX = Math.max(maxX, l.x + l.width / 2); maxY = Math.max(maxY, l.y + l.height / 2);
+        }
+        w = maxX - minX;
+        h = maxY - minY;
+        pivotX = -minX / (w || 1);
+        pivotY = -minY / (h || 1);
+    } else {
+        // For other objects (like empty transforms), don't cull
+        return null;
+    }
+    const sx = transform.scale.x;
+    const sy = transform.scale.y;
+
+    // Local-space corners relative to pivot
+    // We scale by sx/sy because we want the OOB in world units (pixels at scale 1)
+    // but the local coordinates should reflect the scaling.
+    // Wait, transform.scale is already used in the final multiplication or here?
+    // Actually, localCorners should be in "sprite-local" space, then scaled.
+
+    const drawX = -w * pivotX;
+    const drawY = -h * pivotY;
+
+    const localCorners = [
+        { x: drawX * sx, y: drawY * sy }, // Top-left
+        { x: (drawX + w) * sx, y: drawY * sy }, // Top-right
+        { x: (drawX + w) * sx, y: (drawY + h) * sy }, // Bottom-right
+        { x: drawX * sx, y: (drawY + h) * sy }  // Bottom-left
+    ];
+
+    const angleRad = transform.rotation * Math.PI / 180;
+    const cosA = Math.cos(angleRad);
+    const sinA = Math.sin(angleRad);
+
+    const pos = explicitPosition || transform.position;
+
+    const worldCorners = localCorners.map(corner => {
+        // Apply rotation
+        const rotatedX = corner.x * cosA - corner.y * sinA;
+        const rotatedY = corner.x * sinA + corner.y * cosA;
+
+        // Apply translation
+        return {
+            x: rotatedX + pos.x,
+            y: rotatedY + pos.y
+        };
+    });
+
+    return worldCorners;
+}
+
+
+/**
+ * Calculates the world-space Oriented Bounding Box for a camera's view.
+ * @param {Materia} cameraMateria The camera's game object.
+ * @param {number} aspect The aspect ratio of the canvas (width / height).
+ * @returns {Array<{x: number, y: number}>|null} An array of 4 vertex points for the camera's view box.
+ */
+export function getCameraViewBox(cameraMateria, aspect) {
+    const transform = cameraMateria.getComponent(Transform);
+    const camera = cameraMateria.getComponent(Camera);
+
+    if (!transform || !camera) {
         return null;
     }
 
-    /**
-     * Busca un componente en los hijos de esta materia (recursivo).
-     */
-    getComponentInChildren(componentClass) {
-        for (const child of this.children) {
-            const comp = typeof componentClass === 'string' ? child.getComponentByName(componentClass) : child.getComponent(componentClass);
-            if (comp) return comp;
-            const nested = child.getComponentInChildren(componentClass);
-            if (nested) return nested;
-        }
-        return null;
+    let halfWidth, halfHeight;
+
+    if (camera.projection === 'Orthographic') {
+        halfHeight = camera.orthographicSize;
+        halfWidth = halfHeight * aspect;
+    } else { // Perspective
+        // For a 2D perspective, the viewable area at the camera's focal plane (z=0)
+        // is determined by FOV. We can calculate an equivalent orthographic size.
+        // A distance of 1 is assumed for this calculation.
+        const halfFov = camera.fov * 0.5 * Math.PI / 180;
+        halfHeight = Math.tan(halfFov); // This gives a size for a distance of 1
+        halfWidth = halfHeight * aspect;
+        // This is a simplification but provides a reasonable culling box.
+        // For a true culling, we'd check against the trapezoid, but box-to-box is faster.
     }
 
-    /**
-     * Busca un script específico en esta Materia por su nombre.
-     * @param {string} name - El nombre del script (ej: 'ControladorJugador').
-     * @returns {object|null} La instancia del script o null si no se encuentra.
-     */
-    obtenerScript(name) {
-        const scriptComp = this.leyes.find(ley => ley.constructor.name === 'CreativeScript' && ley.scriptName === name);
-        return scriptComp ? scriptComp.instance : null;
+    const localCorners = [
+        { x: -halfWidth, y: -halfHeight },
+        { x:  halfWidth, y: -halfHeight },
+        { x:  halfWidth, y:  halfHeight },
+        { x: -halfWidth, y:  halfHeight }
+    ];
+
+    const angleRad = transform.rotation * Math.PI / 180;
+    const cosA = Math.cos(angleRad);
+    const sinA = Math.sin(angleRad);
+
+    const worldCorners = localCorners.map(corner => {
+        const rotatedX = corner.x * cosA - corner.y * sinA;
+        const rotatedY = corner.x * sinA + corner.y * cosA;
+        return {
+            x: rotatedX + transform.x,
+            y: rotatedY + transform.y
+        };
+    });
+
+    return worldCorners;
+}
+
+// --- Separating Axis Theorem (SAT) ---
+
+/**
+ * Projects a polygon onto an axis and returns the min and max projection values.
+ * @param {Array<{x: number, y: number}>} vertices The vertices of the polygon.
+ * @param {{x: number, y: number}} axis The axis to project onto.
+ * @returns {{min: number, max: number}}
+ */
+function project(vertices, axis) {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const vertex of vertices) {
+        const dotProduct = vertex.x * axis.x + vertex.y * axis.y;
+        min = Math.min(min, dotProduct);
+        max = Math.max(max, dotProduct);
     }
+    return { min, max };
+}
 
-    // Alias en inglés
-    getScript(name) { return this.obtenerScript(name); }
+/**
+ * Gets the perpendicular axes for each edge of a polygon.
+ * @param {Array<{x: number, y: number}>} vertices The vertices of the polygon.
+ * @returns {Array<{x: number, y: number}>} An array of normalized axis vectors.
+ */
+function getAxes(vertices) {
+    const axes = [];
+    for (let i = 0; i < vertices.length; i++) {
+        const p1 = vertices[i];
+        const p2 = vertices[i + 1] || vertices[0]; // Wrap around to the first vertex
 
-    /**
-     * Comprueba si esta materia tiene un tag específico.
-     * @param {string} tag
-     */
-    tieneTag(tag) {
-        return this.tag === tag;
-    }
+        const edge = { x: p2.x - p1.x, y: p2.y - p1.y };
+        const normal = { x: -edge.y, y: edge.x }; // Perpendicular vector
 
-    // Alias en inglés
-    hasTag(tag) { return this.tieneTag(tag); }
-
-    findAncestorWithComponent(componentClass) {
-        let current = this.parent;
-        // If the parent is a number (ID), we need to resolve it to a Materia object first.
-        if (typeof current === 'number') {
-            try {
-                // Assuming `currentScene` is accessible or passed in somehow.
-                // This is a potential issue if currentScene is not globally available here.
-                // For now, let's rely on it being available via SceneManager.
-                current = currentScene.findMateriaById(current);
-            } catch (e) {
-                console.error("Could not resolve parent ID to Materia:", e);
-                return null;
-            }
-        }
-
-        while (current) {
-            if (current.getComponent(componentClass)) {
-                return current;
-            }
-            current = current.parent;
-             // Handle cases where the next parent in the chain is also just an ID
-            if (typeof current === 'number') {
-                 try {
-                    current = currentScene.findMateriaById(current);
-                } catch (e) {
-                    console.error("Could not resolve parent ID to Materia during traversal:", e);
-                    return null;
-                }
-            }
-        }
-        return null;
-    }
-
-    removeComponent(ComponentClass) {
-        const index = this.leyes.findIndex(ley => ley instanceof ComponentClass);
-        if (index !== -1) {
-            const component = this.leyes[index];
-            if (typeof component.onDestroy === 'function') component.onDestroy();
-            this.leyes.splice(index, 1);
+        // Normalize the axis
+        const length = Math.sqrt(normal.x * normal.x + normal.y * normal.y);
+        if (length > 0) {
+            axes.push({ x: normal.x / length, y: normal.y / length });
         }
     }
+    return axes;
+}
 
-    removeComponentByInstance(componentInstance) {
-        const index = this.leyes.indexOf(componentInstance);
-        if (index !== -1) {
-            if (typeof componentInstance.onDestroy === 'function') componentInstance.onDestroy();
-            this.leyes.splice(index, 1);
-        }
-    }
+/**
+ * Checks for collision between two convex polygons using the Separating Axis Theorem.
+ * @param {Array<{x: number, y: number}>} polyA Vertices of the first polygon.
+ * @param {Array<{x: number, y: number}>} polyB Vertices of the second polygon.
+ * @returns {boolean} True if they are intersecting, false otherwise.
+ */
+export function checkIntersection(polyA, polyB) {
+    if (!polyA || !polyB) return false;
 
-    isAncestorOf(potentialDescendant) {
-        let current = potentialDescendant.parent;
-        while (current) {
-            if (current.id === this.id) {
-                return true;
-            }
-            current = current.parent;
-        }
-        return false;
-    }
+    const axesA = getAxes(polyA);
+    const axesB = getAxes(polyB);
 
-    addChild(child) {
-        if (child.parent) {
-            // If parent is an ID (number) due to cloning, resolve it to an object
-            let oldParent = child.parent;
-            if (typeof oldParent === 'number') {
-                try {
-                    oldParent = currentScene.findMateriaById(oldParent);
-                } catch (e) {
-                    oldParent = null;
-                }
-            }
+    // Loop through all axes of both polygons
+    for (const axis of [...axesA, ...axesB]) {
+        const pA = project(polyA, axis);
+        const pB = project(polyB, axis);
 
-            if (oldParent && typeof oldParent.removeChild === 'function') {
-                oldParent.removeChild(child);
-            } else {
-                // If the previous parent is invalid (e.g., numeric placeholder), clear it
-                child.parent = null;
-            }
-        }
-
-        child.parent = this;
-        this.children.push(child);
-
-        // Inherit scene from parent
-        if (this.scene) {
-            child.scene = this.scene;
-        }
-
-        // A child should not be in the root list. Remove it.
-        const scene = this.scene || currentScene;
-        if (scene && scene.materias) {
-            const index = scene.materias.indexOf(child);
-            if (index > -1) {
-                scene.materias.splice(index, 1);
-            }
+        // Check for a gap between the projections. If there is a gap, they don't collide.
+        if (pA.max < pB.min || pB.max < pA.min) {
+            return false; // Found a separating axis
         }
     }
 
-    removeChild(child) {
-        const index = this.children.indexOf(child);
-        if (index > -1) {
-            this.children.splice(index, 1);
-            child.parent = null;
-        }
+    // If no separating axis was found, the polygons are colliding.
+    return true;
+}
+
+/**
+ * Gets the bounding box from a set of corner points.
+ * @param {Array<{x: number, y: number}>} corners
+ */
+export function getBoundsFromCorners(corners) {
+    if (!corners || corners.length === 0) return null;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const p of corners) {
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x);
+        minY = Math.min(minY, p.y);
+        maxY = Math.max(maxY, p.y);
     }
-
-    /**
-     * Destruye recursivamente esta materia, todos sus componentes y todos sus hijos.
-     * Esencial para evitar fugas de memoria (limpieza de suscripciones, timers, etc).
-     */
-    destruir() { this.destroy(); }
-    destroy() {
-        // Notificar destrucción a los componentes de esta materia
-        for (const ley of this.leyes) {
-            if (typeof ley.onDestroy === 'function') {
-                try {
-                    ley.onDestroy();
-                } catch (e) {
-                    console.error(`Error destroying component ${ley.constructor.name} on Materia '${this.name}':`, e);
-                }
-            }
-            // Limpiar referencia circular
-            ley.materia = null;
-        }
-        this.leyes = [];
-
-        // Destruir hijos recursivamente
-        for (const child of this.children) {
-            child.destroy();
-        }
-        this.children = [];
-
-        // Limpiar referencias
-        this.parent = null;
-        this.scene = null;
-    }
-
-    update(deltaTime = 0) {
-        for (const ley of this.leyes) {
-            if (ley.isActive && typeof ley.update === 'function') {
-                try {
-                    ley.update(deltaTime);
-                } catch (e) {
-                    console.error(`Error updating component ${ley.constructor.name} on Materia '${this.name}':`, e);
-                }
-            }
-        }
-    }
-
-    clone(preserveId = false) {
-        // When cloning for scene snapshots, we need to preserve IDs.
-        // When duplicating an object in the editor, we need a new ID.
-        const newMateria = new Materia(this.name);
-        if (preserveId) {
-            newMateria.id = this.id;
-        }
-
-        newMateria.isActive = this.isActive;
-        newMateria.isCollapsed = this.isCollapsed;
-        newMateria.layer = this.layer;
-        newMateria.prefabPath = this.prefabPath;
-        newMateria.tag = this.tag;
-        newMateria.flags = JSON.parse(JSON.stringify(this.flags)); // Deep copy
-
-        // The parent ID is copied directly. The scene clone method will resolve this to an object reference.
-        newMateria.parent = this.parent ? (typeof this.parent === 'number' ? this.parent : this.parent.id) : null;
-
-        // Clone components
-        for (const component of this.leyes) {
-            if (typeof component.clone === 'function') {
-                const newComponent = component.clone();
-                newMateria.addComponent(newComponent);
-            }
-        }
-
-        // Clone children recursively, preserving their IDs
-        for (const child of this.children) {
-            const newChild = child.clone(preserveId);
-            newMateria.addChild(newChild);
-        }
-
-        return newMateria;
-    }
+    return { left: minX, right: maxX, top: minY, bottom: maxY };
 }
